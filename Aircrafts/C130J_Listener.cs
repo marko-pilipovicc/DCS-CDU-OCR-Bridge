@@ -1,35 +1,29 @@
+using System.IO;
 using DCS_BIOS.EventArgs;
 using DCS.OCR.Library.Models;
 using DCS.OCR.Library.Services;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using OpenCvSharp;
-using WWCduDcsBiosBridge.Aircrafts;
+using NLog;
 using WwDevicesDotNet;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
 
 internal class C130J_Listener : AircraftListener
 {
-    private readonly ScreenCaptureService _captureService;
-    private readonly RapidOcrService _rapidOcrService;
-    private readonly CustomOcrService _customOcrService;
-    private readonly CorrectionService _correctionService;
-    private readonly StabilityFilter _stabilityFilter;
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     
-    private Profile? _currentProfile;
-    private bool _isOcrRunning = false;
-    private Task? _ocrTask;
+    private readonly ScreenCaptureService _captureService;
+    private readonly CorrectionService _correctionService;
+    private readonly CustomOcrService _customOcrService;
+    private readonly RapidOcrService _rapidOcrService;
+    private readonly StabilityFilter _stabilityFilter;
     private CancellationTokenSource? _cts;
 
-    protected override string GetAircraftName() => SupportedAircrafts.C130J_Name;
-    protected override string GetFontFile() => "resources/a10c-font-21x31.json"; // Placeholder font
+    private Profile? _currentProfile;
+    private bool _isOcrRunning;
+    private Task? _ocrTask;
 
-    public C130J_Listener(ICdu? mcdu, UserOptions options) 
+    public C130J_Listener(ICdu? mcdu, UserOptions options)
         : base(mcdu, SupportedAircrafts.C130J, options)
     {
         _captureService = new ScreenCaptureService();
@@ -41,12 +35,23 @@ internal class C130J_Listener : AircraftListener
         LoadProfileAndModels();
     }
 
+    protected override string GetAircraftName()
+    {
+        return SupportedAircrafts.C130J_Name;
+    }
+
+    protected override string GetFontFile()
+    {
+        return "resources/a10c-font-21x31.json";
+        // Placeholder font
+    }
+
     private void LoadProfileAndModels()
     {
         try
         {
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string profilePath = Path.Combine(baseDir, "Config", "OCR", "profiles", "C-130J", "PILOT_CNI.json");
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var profilePath = Path.Combine(baseDir, "Config", "OCR", "profiles", "C-130J", "PILOT_CNI.json");
 
             if (File.Exists(profilePath))
             {
@@ -58,8 +63,8 @@ internal class C130J_Listener : AircraftListener
                 App.Logger.Error($"C-130J Profile NOT found at {profilePath}");
             }
 
-            string customModelPath = Path.Combine(baseDir, "Config", "OCR", "models", "custom", "model.onnx");
-            string alphabetPath = Path.Combine(baseDir, "Config", "OCR", "models", "custom", "alphabet.txt");
+            var customModelPath = Path.Combine(baseDir, "Config", "OCR", "models", "custom", "model.onnx");
+            var alphabetPath = Path.Combine(baseDir, "Config", "OCR", "models", "custom", "alphabet.txt");
 
             if (File.Exists(customModelPath))
             {
@@ -97,7 +102,7 @@ internal class C130J_Listener : AircraftListener
     private void StartOcrLoop()
     {
         if (_isOcrRunning) return;
-        
+
         _isOcrRunning = true;
         _cts = new CancellationTokenSource();
         _ocrTask = Task.Run(() => OcrLoop(_cts.Token));
@@ -112,7 +117,9 @@ internal class C130J_Listener : AircraftListener
         {
             _ocrTask?.Wait(1000);
         }
-        catch { }
+        catch
+        {
+        }
     }
 
     private async Task OcrLoop(CancellationToken token)
@@ -152,18 +159,37 @@ internal class C130J_Listener : AircraftListener
         }
     }
 
-    private void UpdateDisplay(string[] lines)
+    private void UpdateDisplay(OcrResult result)
     {
         var output = GetCompositor(DEFAULT_PAGE);
-        for (int i = 0; i < lines.Length && i < 14; i++)
+        for (var i = 0; i < result.Lines.Length && i < 14; i++)
         {
-            string line = lines[i];
-        if (line.Length > 2)
-        {
-            line = line.Substring(1, line.Length - 2);
-        }
+            var line = result.Lines[i];
+            var format = result.LinesFormat[i];
+            
+            // Apply clipping if necessary (same as before)
+            if (line.Length > 2) 
+            {
+                line = line.Substring(1, line.Length - 2);
+                if (format.Length >= line.Length + 2)
+                    format = format.Substring(1, line.Length);
+            }
 
-        output.Line(i).Green().WriteLine(line);
+            var lineObj = output.Line(i).Green();
+            
+            // Logger.Info($"Line {i}: {line}");
+            // Logger.Info($"Format {i}: {format}");
+            
+            // Apply inversion character by character
+            for (int c = 0; c < line.Length; c++)
+            {
+                bool isInverted = c < format.Length && format[c] == 'I';
+                if (isInverted) lineObj.InvertColors();
+
+                lineObj.Write(line[c]);
+
+                if (isInverted) lineObj.InvertColors();
+            }
         }
     }
 
@@ -185,6 +211,7 @@ internal class C130J_Listener : AircraftListener
             // _captureService.Dispose(); // ScreenCaptureService is not IDisposable
             _cts?.Dispose();
         }
+
         base.Dispose(disposing);
     }
 }
