@@ -148,7 +148,7 @@ internal class C130J_Listener : AircraftListener
                 App.Logger.Error(ex, "Error in C-130J OCR Loop");
             }
 
-            await Task.Delay(100, token); // Run at ~10 FPS
+            await Task.Delay(200, token); // Run at ~5 FPS
         }
     }
 
