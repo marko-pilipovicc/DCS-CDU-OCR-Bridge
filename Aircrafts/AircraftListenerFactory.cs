@@ -16,6 +16,8 @@ internal class AircraftListenerFactory : IAircraftListenerFactory
         UserOptions options,
         IFrontpanel? frontpanel = null)
     {
+        Metrics.Columns = aircraft.AircraftId == SupportedAircrafts.C130J ? 25 : 24;
+
         return aircraft.AircraftId switch
         {
             SupportedAircrafts.A10C => new A10C_Listener(mcdu, options, frontpanel),

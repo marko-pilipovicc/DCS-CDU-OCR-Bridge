@@ -40,6 +40,10 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
     public AircraftListener(ICdu? mcdu, int aircraftNumber, UserOptions options, IFrontpanel? frontpanel = null)
     {
         this.mcdu = mcdu;
+        if (this.mcdu != null)
+        {
+            this.mcdu.Screen.Resize(Metrics.Columns);
+        }
         this.frontpanel = frontpanel;
         this.options = options;
         DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(aircraftNumber);
@@ -100,6 +104,22 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         if (mcdu != null)
         {
             InitMcduBrightness(options.DisableLightingManagement);
+
+            // Reload font with potentially updated Metrics.Columns
+            try
+            {
+                var fontFile = GetFontFile();
+                if (File.Exists(fontFile))
+                {
+                    var fontJson = File.ReadAllText(fontFile);
+                    mcdu.UseFont(JsonConvert.DeserializeObject<McduFontFile>(fontJson), true);
+                    App.Logger.Info($"Loaded font for {GetAircraftName()} from {fontFile}");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.Error(ex, $"Failed to load font for {GetAircraftName()}");
+            }
         }
 
         BIOSEventHandler.AttachStringListener(this);
