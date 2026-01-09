@@ -4,3 +4,6 @@
 [submodule "libs/cduhub"]
 	path = libs/cduhub
 	url = https://github.com/landre-cerp/cduhub
+[submodule "libs/DcsOcr"]
+	path = libs/DcsOcr
+	url = https://github.com/marko-pilipovicc/DCS-OCR
