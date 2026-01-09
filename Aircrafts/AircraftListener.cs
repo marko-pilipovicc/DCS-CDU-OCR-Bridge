@@ -43,7 +43,10 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         this.frontpanel = frontpanel;
         this.options = options;
         DCSBIOSControlLocator.DCSAircraft = DCSAircraft.GetAircraft(aircraftNumber);
-        _UpdateCounterDCSBIOSOutput = DCSBIOSOutput.GetUpdateCounter();
+        if (DCSBIOSControlLocator.DCSAircraft != null && DCSBIOSControlLocator.DCSAircraft.DCSBIOSLocation != DCSBIOSLocation.None)
+        {
+            _UpdateCounterDCSBIOSOutput = DCSBIOSOutput.GetUpdateCounter();
+        }
 
         _DisplayCDUTimer = new(_TICK_DISPLAY);
         _DisplayCDUTimer.Elapsed += (_, _) =>
@@ -89,7 +92,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         }
     }
 
-    public void Start()
+    public virtual void Start()
     {
         InitializeDcsBiosControls();
         
@@ -125,7 +128,7 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
         frontpanel.SetBrightness(panelBacklight, lcdBacklight, ledBacklight);
     }
 
-    public void Stop()
+    public virtual void Stop()
     {
         _DisplayCDUTimer.Stop();
 

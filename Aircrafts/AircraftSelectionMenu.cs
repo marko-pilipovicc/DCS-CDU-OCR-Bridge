@@ -51,6 +51,7 @@ internal class AircraftSelectionMenu : IDisposable
             .LeftLabel(4, SupportedAircrafts.F15E_Name)
             .RightLabel(4, $"{SupportedAircrafts.CH47_Name} (CPLT)")
             .LeftLabel(5, SupportedAircrafts.M2000C_Name)
+            .RightLabel(5, SupportedAircrafts.C130J_Name)
             .BottomLine().WriteLine($"v{version}");
         mcdu.RefreshDisplay();
     }
@@ -69,6 +70,7 @@ internal class AircraftSelectionMenu : IDisposable
             Key.LineSelectLeft4 => new AircraftSelection(SupportedAircrafts.F15E, true),
             Key.LineSelectRight4 => new AircraftSelection(SupportedAircrafts.CH47, false),
             Key.LineSelectLeft5 => new AircraftSelection(SupportedAircrafts.M2000C, true),
+            Key.LineSelectRight5 => new AircraftSelection(SupportedAircrafts.C130J, true),
             _ => null
         };
 

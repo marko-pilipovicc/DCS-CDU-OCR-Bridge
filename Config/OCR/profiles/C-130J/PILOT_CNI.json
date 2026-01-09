@@ -1,0 +1,137 @@
+{
+  "ProfileId": "C-130J-PILOT-CNI",
+  "ViewportCrop": {
+    "X": -1568,
+    "Y": 0,
+    "W": 800,
+    "H": 600
+  },
+  "Rows": 14,
+  "Cols": 27,
+  "Charset": " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,:;!?-+/()[]{}<>|^Â°",
+  "Cells": null,
+  "FieldMap": [
+    {
+      "Id": 82,
+      "Name": "cni_title",
+      "Row": 0,
+      "Col": 8
+    },
+    {
+      "Id": 230,
+      "Name": "cni_scratchpad",
+      "Row": 13,
+      "Col": 0
+    }
+  ],
+  "RowBands": [
+    [
+      0,
+      56
+    ],
+    [
+      58,
+      90
+    ],
+    [
+      96,
+      136
+    ],
+    [
+      136,
+      170
+    ],
+    [
+      174,
+      218
+    ],
+    [
+      226,
+      258
+    ],
+    [
+      260,
+      300
+    ],
+    [
+      312,
+      340
+    ],
+    [
+      344,
+      390
+    ],
+    [
+      396,
+      426
+    ],
+    [
+      428,
+      474
+    ],
+    [
+      480,
+      514
+    ],
+    [
+      516,
+      562
+    ],
+    [
+      562,
+      600
+    ]
+  ],
+  "RowCenters": [
+    38,
+    78,
+    114,
+    152,
+    196,
+    242,
+    280,
+    326,
+    367,
+    411,
+    451,
+    497,
+    536,
+    581
+  ],
+  "DynamicRowYOffset": 20,
+  "DynamicRowHeightMin": 28,
+  "DynamicRowHeightMax": 40,
+  "DynamicRowGap": null,
+  "UseDynamicRowSegmentation": true,
+  "AutoAlign": true,
+  "Invert": false,
+  "UseGlobalThreshold": true,
+  "BinaryThreshold": 84,
+  "GreenOnly": true,
+  "AlignmentPadding": 0,
+  "Sharpness": 0.0,
+  "Contrast": 1.0,
+  "Dilation": 0,
+  "MinCharDistance": 0,
+  "ContextRules": [
+    {
+      "Target": "INS",
+      "Patterns": [
+        "1NS",
+        "lNS",
+        "|NS"
+      ],
+      "Threshold": 0.5
+    },
+    {
+      "Target": "CTRL",
+      "Patterns": [
+        "CTRI",
+        "CITL",
+        "C|RL",
+        "CTR|"
+      ],
+      "Threshold": 0.5
+    }
+  ]
+}

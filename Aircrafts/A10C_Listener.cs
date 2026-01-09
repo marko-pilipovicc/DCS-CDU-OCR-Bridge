@@ -1,6 +1,7 @@
 using DCS_BIOS.ControlLocator;
 using DCS_BIOS.EventArgs;
 using DCS_BIOS.Serialized;
+using NLog;
 using WwDevicesDotNet;
 using WwDevicesDotNet.WinWing.FcuAndEfis;
 using WwDevicesDotNet.WinWing.Pap3;
@@ -43,6 +44,7 @@ internal class A10C_Listener : AircraftListener
     private int[] pressureDigits = new int[4];
     private int[] altitudeDigits = new int[3];
 
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     protected override string GetAircraftName() => SupportedAircrafts.A10C_Name;
     protected override string GetFontFile() => "resources/a10c-font-21x31.json";
 
@@ -234,13 +236,18 @@ internal class A10C_Listener : AircraftListener
         {
 
             string data = e.StringData
-                .Replace("�", ">")
-                .Replace("�", "<")
-                .Replace("�", "}")
-                .Replace("�", "{")
-                .Replace("�", "^")
-                .Replace("�", "_")
-                .Replace("?", "%");
+                // .Replace("�", ">")
+                // .Replace("�", "<")
+                // .Replace("�", "}")
+                // .Replace("�", "{")
+                .Replace("©", "^")
+                .Replace("±", "_")
+                .Replace("?", "%")
+                .Replace("¡", "☐")
+                .Replace("®", "Δ")
+                .Replace("»", "→")
+                .Replace("«", "←")
+                .Replace("¶", "█");
 
             output.Green();
 
@@ -285,6 +292,16 @@ internal class A10C_Listener : AircraftListener
 
             if (lineMap.TryGetValue(e.Address, out int lineIndex))
             {
+                // Print CDU lines as they update
+                // for (int i = 0; i < 10; i++)
+                // {
+                //     if (cduLines[i]?.Address == e.Address)
+                //     {
+                //         Logger.Info($"CDU Line {i}: {data}");
+                //         break;
+                //     }
+                // }
+
                 if (options.DisplayCMS || (_CMSP1!.Address != e.Address && _CMSP2!.Address != e.Address))
                 {
                     output.Line(lineIndex).WriteLine(data);
