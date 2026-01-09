@@ -4,6 +4,6 @@
 [submodule "libs/DcsOcr"]
 	path = libs/DcsOcr
 	url = https://github.com/marko-pilipovicc/DCS-OCR
-[submodule "DCSFPCommon"]
-	path = DCSFPCommon
+[submodule "libs/DCSFPCommon"]
+	path = libs/DCSFPCommon
 	url = https://github.com/marko-pilipovicc/DCSFPCommon

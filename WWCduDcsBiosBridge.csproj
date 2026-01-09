@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <Compile Remove="libs\cduhub\**" />
-    <Compile Remove="DCSFPCommon\**" />
+    <Compile Remove="libs\DCSFPCommon\**" />
     <Compile Remove="libs\DcsOcr\**" />
     <EmbeddedResource Remove="libs\**" />
     <None Remove="libs\**" />
@@ -48,7 +48,7 @@
 
   <ItemGroup>
     <ProjectReference Include="libs\cduhub\library\mcdu-dotnet\mcdu-dotnet.csproj" />
-    <ProjectReference Include="DCSFPCommon\src\DCS-BIOS\DCS-BIOS.csproj" />
+    <ProjectReference Include="libs\DCSFPCommon\src\DCS-BIOS\DCS-BIOS.csproj" />
     <ProjectReference Include="libs\DcsOcr\DCS.OCR.Library.csproj" />
   </ItemGroup>
 
