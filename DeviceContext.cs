@@ -81,8 +81,8 @@ internal class DeviceContext : IDisposable
         if (!isSelectedAircraft || SelectedAircraft == null) return;
 
         DCSAircraft.Init();
-        DCSAircraft.AddModule(SupportedAircrafts.C130J, SupportedAircrafts.C130J_Name, "C-130J.json", DCSBIOSLocation.None);
         DCSAircraft.FillModulesListFromDcsBios(config!.DcsBiosJsonLocation, true);
+        DCSAircraft.AddModule(SupportedAircrafts.C130J, SupportedAircrafts.C130J_Name, "C-130J.json", DCSBIOSLocation.None);
         DCSBIOSControlLocator.JSONDirectory = config.DcsBiosJsonLocation;
         
         try

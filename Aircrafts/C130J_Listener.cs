@@ -157,7 +157,13 @@ internal class C130J_Listener : AircraftListener
         var output = GetCompositor(DEFAULT_PAGE);
         for (int i = 0; i < lines.Length && i < 14; i++)
         {
-            output.Line(i).Green().WriteLine(lines[i]);
+            string line = lines[i];
+        if (line.Length > 2)
+        {
+            line = line.Substring(1, line.Length - 2);
+        }
+
+        output.Line(i).Green().WriteLine(line);
         }
     }
 

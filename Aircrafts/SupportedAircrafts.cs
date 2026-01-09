@@ -24,6 +24,6 @@ internal static class SupportedAircrafts
     public const int C130J = 130;
     public const string C130J_Name = "C-130J";
 
-    public static readonly string[] expected_json = { "A-10C.json", "AH-64D.json", "FA-18C_hornet.json", "CH-47F.json", "F-15E.json", "M-2000C.json" };
+    public static readonly string[] expected_json = { "A-10C.json", "AH-64D.json", "FA-18C_hornet.json", "CH-47F.json", "F-15E.json", "M-2000C.json", "C-130J.json" };
 
 }

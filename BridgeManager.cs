@@ -1,26 +1,37 @@
 using DCS_BIOS;
 using NLog;
-using WWCduDcsBiosBridge.Config;
 using WWCduDcsBiosBridge.Aircrafts;
+using WWCduDcsBiosBridge.Config;
 
 namespace WWCduDcsBiosBridge;
 
 /// <summary>
-/// Manages the DCS-BIOS bridge lifecycle
+///     Manages the DCS-BIOS bridge lifecycle
 /// </summary>
 public class BridgeManager : IDisposable
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    
-    public bool IsStarted { get; private set; }
-    internal List<DeviceContext>? Contexts { get; private set; }
-    
-    private DCSBIOS? dcsBios;
-    private bool _disposed = false;
+    private bool _disposed;
     private TaskCompletionSource<AircraftSelection>? _globalAircraftSelectionTcs;
 
+    private DCSBIOS? dcsBios;
+
+    public bool IsStarted { get; private set; }
+    internal List<DeviceContext>? Contexts { get; private set; }
+
     /// <summary>
-    /// Sets the global aircraft selection (used when no CDU is present)
+    ///     Gets the number of active contexts
+    /// </summary>
+    public int ContextCount => Contexts?.Count ?? 0;
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    ///     Sets the global aircraft selection (used when no CDU is present)
     /// </summary>
     public void SetGlobalAircraftSelection(AircraftSelection selection)
     {
@@ -28,7 +39,7 @@ public class BridgeManager : IDisposable
     }
 
     /// <summary>
-    /// Starts the bridge with the specified devices and configuration
+    ///     Starts the bridge with the specified devices and configuration
     /// </summary>
     public async Task StartAsync(List<DeviceInfo> devices, UserOptions userOptions, DcsBiosConfig config)
     {
@@ -45,7 +56,7 @@ public class BridgeManager : IDisposable
         {
             // Create device contexts for all devices
             Contexts = new List<DeviceContext>();
-            
+
             foreach (var deviceInfo in devices)
             {
                 DeviceContext ctx;
@@ -62,17 +73,15 @@ public class BridgeManager : IDisposable
                     Logger.Warn("Skipping device with no CDU or Frontpanel interface");
                     continue;
                 }
+
                 Contexts.Add(ctx);
             }
 
-            if (!Contexts.Any())
-            {
-                throw new InvalidOperationException("No valid devices found.");
-            }
+            if (!Contexts.Any()) throw new InvalidOperationException("No valid devices found.");
 
             var cduCount = Contexts.Count(c => c.IsCduDevice);
             var frontpanelCount = Contexts.Count(c => c.IsFrontpanelDevice);
-            
+
             Logger.Info($"Created contexts for {cduCount} CDU device(s) and {frontpanelCount} Frontpanel device(s)");
 
             // Show startup screens only on CDU devices
@@ -89,10 +98,11 @@ public class BridgeManager : IDisposable
                 Logger.Info("Waiting for aircraft selection on any CDU device...");
                 while (!cduContexts.Any(c => c.IsSelectedAircraft))
                     await Task.Delay(100);
-                
+
                 // First CDU to select wins - use that selection globally
                 selectedAircraft = cduContexts.First(c => c.IsSelectedAircraft).SelectedAircraft;
-                Logger.Info($"Aircraft selected on CDU: {selectedAircraft!.AircraftId}, IsPilot: {selectedAircraft.IsPilot}");
+                Logger.Info(
+                    $"Aircraft selected on CDU: {selectedAircraft!.AircraftId}, IsPilot: {selectedAircraft.IsPilot}");
             }
             else
             {
@@ -100,14 +110,12 @@ public class BridgeManager : IDisposable
                 Logger.Info("No CDU devices found. Waiting for global aircraft selection from UI...");
                 _globalAircraftSelectionTcs = new TaskCompletionSource<AircraftSelection>();
                 selectedAircraft = await _globalAircraftSelectionTcs.Task;
-                Logger.Info($"Global aircraft selection received from UI: {selectedAircraft.AircraftId}, IsPilot: {selectedAircraft.IsPilot}");
+                Logger.Info(
+                    $"Global aircraft selection received from UI: {selectedAircraft.AircraftId}, IsPilot: {selectedAircraft.IsPilot}");
             }
 
             // Propagate global aircraft selection to ALL contexts (CDU and Frontpanel)
-            foreach (var ctx in Contexts.Where(c => !c.IsSelectedAircraft))
-            {
-                ctx.SetAircraftSelection(selectedAircraft!);
-            }
+            foreach (var ctx in Contexts.Where(c => !c.IsSelectedAircraft)) ctx.SetAircraftSelection(selectedAircraft!);
 
             // Initialize DCS-BIOS
             InitializeDcsBios(config);
@@ -123,7 +131,8 @@ public class BridgeManager : IDisposable
                 ctx.StartBridge(frontpanel);
 
             IsStarted = true;
-            Logger.Info($"Bridge started successfully with {Contexts.Count} device(s) ({cduCount} CDU, {frontpanelCount} Frontpanel)");
+            Logger.Info(
+                $"Bridge started successfully with {Contexts.Count} device(s) ({cduCount} CDU, {frontpanelCount} Frontpanel)");
         }
         catch (Exception ex)
         {
@@ -134,12 +143,7 @@ public class BridgeManager : IDisposable
     }
 
     /// <summary>
-    /// Gets the number of active contexts
-    /// </summary>
-    public int ContextCount => Contexts?.Count ?? 0;
-
-    /// <summary>
-    /// Stops the bridge and cleans up resources
+    ///     Stops the bridge and cleans up resources
     /// </summary>
     public async Task StopAsync()
     {
@@ -165,15 +169,12 @@ public class BridgeManager : IDisposable
     private void InitializeDcsBios(DcsBiosConfig config)
     {
         dcsBios = new DCSBIOS(config.ReceiveFromIpUdp, config.SendToIpUdp,
-                             config.ReceivePortUdp, config.SendPortUdp,
-                             DcsBiosNotificationMode.Parse);
+            config.ReceivePortUdp, config.SendPortUdp,
+            DcsBiosNotificationMode.Parse);
 
         if (!dcsBios.HasLastException())
         {
-            if (!dcsBios.IsRunning)
-            {
-                dcsBios.Startup();
-            }
+            if (!dcsBios.IsRunning) dcsBios.Startup();
             Logger.Info("DCS-BIOS started successfully.");
         }
         else
@@ -194,21 +195,13 @@ public class BridgeManager : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
             return;
 
         if (disposing)
-        {
             if (IsStarted)
-            {
                 try
                 {
                     StopAsync().GetAwaiter().GetResult();
@@ -217,8 +210,6 @@ public class BridgeManager : IDisposable
                 {
                     Logger.Error(ex, "Error stopping bridge during dispose");
                 }
-            }
-        }
 
         _disposed = true;
     }
