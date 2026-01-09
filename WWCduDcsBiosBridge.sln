@@ -11,9 +11,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		UserOptions.cs = UserOptions.cs
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DCS-BIOS", "libs\DCSFPCommon\src\DCS-BIOS\DCS-BIOS.csproj", "{075D652B-904F-5925-3AAF-703B01F7A753}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DCS-BIOS", "DCSFPCommon\src\DCS-BIOS\DCS-BIOS.csproj", "{075D652B-904F-5925-3AAF-703B01F7A753}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibraryCommon", "libs\DCSFPCommon\src\ClassLibraryCommon\ClassLibraryCommon.csproj", "{1DD0130F-9BCB-D461-4978-4DFBFCFA56EC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibraryCommon", "DCSFPCommon\src\ClassLibraryCommon\ClassLibraryCommon.csproj", "{1DD0130F-9BCB-D461-4978-4DFBFCFA56EC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mcdu-dotnet", "libs\cduhub\library\mcdu-dotnet\mcdu-dotnet.csproj", "{3D20AC80-B6BC-3E35-3E56-961D7A82C10D}"
 EndProject
