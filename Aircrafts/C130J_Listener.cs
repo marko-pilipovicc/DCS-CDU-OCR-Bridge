@@ -42,7 +42,7 @@ internal class C130J_Listener : AircraftListener
 
     protected override string GetFontFile()
     {
-        return "resources/a10c-font-21x31.json";
+        return "resources/c130j-font-21x31.json";
         // Placeholder font
     }
 

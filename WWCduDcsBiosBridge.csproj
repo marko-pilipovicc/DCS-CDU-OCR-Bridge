@@ -22,6 +22,9 @@
     <Compile Remove="libs\DcsOcr\**" />
     <EmbeddedResource Remove="libs\**" />
     <None Remove="libs\**" />
+    <None Update="Resources\c130j-font-21x31.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
