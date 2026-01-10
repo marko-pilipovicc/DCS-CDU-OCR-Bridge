@@ -27,8 +27,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
     private string _statusMessage = "Ready.";
     private bool _statusIsError;
 
-    private const string GitHubOwner = "landre-cerp";
-    private const string GitHubRepo = "WWCduDcsBiosBridge";
+    private const string GitHubOwner = "marko-pilipovicc";
+    private const string GitHubRepo = "DCS-CDU-OCR-BRIDGE";
 
     // Dedicated update notification state
     private string? _updateMessage;

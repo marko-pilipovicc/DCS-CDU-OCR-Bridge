@@ -41,8 +41,8 @@ internal class AircraftSelectionMenu : IDisposable
         var version = AppVersionProvider.GetAppVersion();
 
         mcdu.Output.Clear().Green()
-            .Line(0).Centered("DCSbios/WW Bridge")
-            .NewLine().Large().Yellow().Centered("by Cerppo")
+            .Line(0).Centered("DCS-BIOS, OCR CDU Bridge")
+            .NewLine().Large().Yellow().Centered("by Marko")
             .White()
             .LeftLabel(2, SupportedAircrafts.A10C_Name)
             .RightLabel(2, SupportedAircrafts.AH64D_Name)

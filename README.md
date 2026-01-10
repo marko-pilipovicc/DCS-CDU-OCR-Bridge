@@ -1,22 +1,25 @@
 
 [![Release][release-shield]][release-url]
-[![Discord][discord-shield]][discord-invite-url]
-![Build Status][build-shield]
-![License](https://img.shields.io/github/license/landre-cerp/WWCduDcsBiosBridge)
 
-# WWCduDCSBiosBridge
+[//]: # ([![Discord][discord-shield]][discord-invite-url])
+![Build Status][build-shield]
+![License](https://img.shields.io/github/license/marko-pilipovicc/DCS-CDU-OCR-Bridge)
+
+# DCS-CDU-OCR-BRIDGE
 
 This console application bridges DCS World with the Winwing MCDU hardware, enabling real-time data exchange between the simulator and the physical device.
 
-**Data Flow:** DCS <-> DCS-BIOS <-> This App <-> Winwing MCDU
+**Data Flow:**
+- **Standard Flow:** DCS ⟷ DCS-BIOS ⟷ This App ⟷ Winwing hardware
+- **C-130J OCR Flow:** DCS (Screen Capture) ⟶ OCR Processing ⟶ This App ⟶ Winwing hardware
 
 ## Quick Start
 
 1. **Install DCS-BIOS** (see detailed instructions below)
 2. **Download and extract** this application to your preferred folder
-5. **Connect** your Winwing MCDU ( before starting bridge )
-6. **run** the application
-7. **Launch DCS** and select your aircraft from the MCDU menu
+3. **Connect** your Winwing devices (before starting bridge)
+4. **Run** the application
+5. **Launch DCS** and select your aircraft from the MCDU menu
 
 ## Requirements
 
@@ -38,6 +41,7 @@ At least one of these devices.
 | **CH-47F** | Basic | Pilot or CoPilot CDU (requires DCS-BIOS nightly build) |
 | **F15E** | Basic | UFC Lines 1-6 by smreki |
 | **M2K** | Basic | see documentation in docs/ |
+| **C-130J** | Advanced | CNI display via OCR |
 
 ### LED Mappings (A10C)
 
@@ -51,8 +55,16 @@ At least one of these devices.
 ### LED Mappings other aircraft
 | MCDU LED | DCS Indicator |
 |----------|---------------|
-| CDU LED | DCS Indicator |
-| Fail | Master Caution |
+| Fail | Master Caution (CH-47F) |
+
+## OCR Support (C-130J)
+
+The C-130J implementation uses Optical Character Recognition (OCR) to extract data from the DCS screen, as certain display data is not yet available via DCS-BIOS.
+
+- **Requirement:** The CNI display must be visible on your screen for the OCR to capture it.
+- **Configuration:** Viewport coordinates can be adjusted in `Config/OCR/profiles/C-130J/PILOT_CNI.json`.
+- **Performance:** Runs at approximately 5 FPS to minimize CPU impact.
+- **LED Mappings:** Currently not implemented due to lack of support in DCS-BIOS.
 
 ## Installation
 
@@ -90,6 +102,17 @@ if no config.json is found, it will create a default one and show you a dialog b
 
 - **MCDU Keys:** Map them in DCS.
 - **Aircraft Selection:** Use line select keys on startup screen
+
+## Utilities
+
+### Font Editor
+
+A Python-based GUI for editing CDU fonts is available in `utilities/font_editor.py`. It allows you to:
+- Interactively toggle pixels on a 21x31 grid.
+- Load and save directly to `Resources/*.json` files.
+- Support for both Large and Small glyphs.
+
+*Requires Python installed on your system.*
 
 ## Troubleshooting
 
@@ -133,13 +156,15 @@ Otherwise,
 
 All application activity is logged to `log.txt` in the same folder as the executable. Check this file for detailed error information.
 
-Report issues [here](https://github.com/landre-cerp/WWCduDcsBiosBridge/issues), or reach out on Discord [![Discord][discord-shield]][discord-invite-url].
+Report issues [here](https://github.com/marko-pilipovicc/DCS-CDU-OCR-Bridge/issues), or reach out on Discord [![Discord][discord-shield]][discord-invite-url].
 
 ## Known Limitations
 
 - **Aircraft switching:** Requires application restart
 - **Cursor behavior:** May appear erratic during waypoint entry (reflects DCS-BIOS data)
 - **CH-47F support:** Requires DCS-BIOS nightly build (later than 0.8.4 )
+- **C-130J OCR:** Requires the CNI display to be visible on screen; works best in Windowed or Borderless Windowed mode.
+- **C-130J LED Mappings:** Currently not implemented due to lack of support in DCS-BIOS.
 - **Brightness sync:** May not perfectly match aircraft state
 
 ## Development
@@ -147,6 +172,8 @@ Report issues [here](https://github.com/landre-cerp/WWCduDcsBiosBridge/issues), 
 This project is written in C# and targets .NET 8.0. It uses:
 - **DCS-BIOS** for DCS communication
 - **mcdu-dotnet** for MCDU hardware interface
+- **DcsOcr** (submodule) for OCR-based data extraction
+- **OpenCvSharp & OnnxRuntime** for OCR processing
 - **NLog** for logging
 - **System.CommandLine** for command-line parsing
 
@@ -161,11 +188,8 @@ See `LICENSE.txt` and `thirdparty-licences.txt` for licensing information.
 
 For issues and questions, please check the logs first and review the troubleshooting section above.
 
-and if you want, no need, you can [Buy Me a Coffee](https://www.buymeacoffee.com/cerppo)
+[release-url]: https://github.com/marko-pilipovicc/DCS-CDU-OCR-Bridge/releases
+[release-shield]:  https://img.shields.io/github/release/marko-pilipovicc/DCS-CDU-OCR-Bridge.svg
 
-[release-url]: https://github.com/landre-cerp/WWCduDcsBiosBridge/releases
-[release-shield]:  https://img.shields.io/github/release/landre-cerp/WWCduDcsBiosBridge.svg
-[discord-shield]: https://img.shields.io/discord/231115945047883778
-[discord-invite-url]: https://discord.gg/Td2cGvMhVC
 [dcs-forum-discussion]: https://forum.dcs.world/topic/368056-winwing-mcdu-can-it-be-used-in-dcs-for-other-aircraft/page/4/
-[build-shield]: https://img.shields.io/github/actions/workflow/status/landre-cerp/WWCduDcsBiosBridge/build-on-tag.yml
+[build-shield]: https://img.shields.io/github/actions/workflow/status/marko-pilipovicc/DCS-CDU-OCR-Bridge/build-on-tag.yml
