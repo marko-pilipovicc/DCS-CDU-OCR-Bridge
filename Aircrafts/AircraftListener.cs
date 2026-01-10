@@ -158,9 +158,33 @@ internal abstract class AircraftListener : IDcsBiosListener, IDisposable
 
         if (mcdu != null)
         {
-            mcdu.Output.Clear();
             mcdu.Cleanup();
-            mcdu.RefreshDisplay();
+        }
+
+        if (frontpanel != null)
+        {
+            try
+            {
+                if (frontpanel is FcuEfisDevice)
+                {
+                    frontpanel.UpdateDisplay(new FcuEfisState());
+                    frontpanel.UpdateLeds(new FcuEfisLeds());
+                }
+                else if (frontpanel is Pap3Device)
+                {
+                    frontpanel.UpdateDisplay(new Pap3State());
+                    frontpanel.UpdateLeds(new Pap3Leds());
+                }
+
+                if (!options.DisableLightingManagement)
+                {
+                    frontpanel.SetBrightness(0, 0, 0);
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.Error(ex, "Error clearing frontpanel during stop");
+            }
         }
     }
 

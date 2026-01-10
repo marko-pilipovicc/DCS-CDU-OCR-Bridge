@@ -81,7 +81,11 @@ internal class AircraftSelectionMenu : IDisposable
         }
     }
 
-    public void Dispose() => Hide();
+    public void Dispose()
+    {
+        Hide();
+        mcdu.Cleanup();
+    }
 }
 
 public sealed record AircraftSelection(int AircraftId, bool IsPilot);
