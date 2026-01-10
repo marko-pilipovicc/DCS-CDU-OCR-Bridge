@@ -166,6 +166,7 @@ internal class C130J_Listener : AircraftListener
         {
             var line = result.Lines[i];
             var format = result.LinesFormat[i];
+            var size = result.LinesSize[i];
             
             // Apply clipping if necessary (same as before)
             if (line.Length > 2) 
@@ -179,15 +180,18 @@ internal class C130J_Listener : AircraftListener
             
             // Logger.Info($"Line {i}: {line}");
             // Logger.Info($"Format {i}: {format}");
+            // Logger.Info($"Size {i}: {size}");
             
             // Apply inversion character by character
             for (int c = 0; c < line.Length; c++)
             {
                 bool isInverted = c < format.Length && format[c] == 'I';
                 if (isInverted) lineObj.InvertColors();
-
+                if (size.Contains('S')) lineObj.Small();
+                
                 lineObj.Write(line[c]);
 
+                if (size.Contains('S')) lineObj.Large();
                 if (isInverted) lineObj.InvertColors();
             }
         }
