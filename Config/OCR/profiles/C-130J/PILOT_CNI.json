@@ -1,14 +1,14 @@
 {
   "ProfileId": "C-130J-PILOT-CNI",
   "ViewportCrop": {
-    "X": -1568,
-    "Y": 0,
+    "X": -800,
+    "Y": 1024,
     "W": 800,
     "H": 600
   },
   "Rows": 14,
   "Cols": 27,
-  "Charset": " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,:;!?-+/()[]{}<>|^Â°",
+  "Charset": " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,:-+/()[]<>^*#=&%□",
   "Cells": null,
   "FieldMap": [
     {
@@ -85,7 +85,7 @@
   "RowCenters": [
     38,
     78,
-    114,
+    122,
     152,
     196,
     242,
@@ -93,20 +93,20 @@
     326,
     367,
     411,
-    451,
+    454,
     497,
     536,
     581
   ],
-  "DynamicRowYOffset": 20,
+  "DynamicRowYOffset": 10,
   "DynamicRowHeightMin": 28,
   "DynamicRowHeightMax": 40,
-  "DynamicRowGap": null,
+  "DynamicRowGap": 2,
   "UseDynamicRowSegmentation": true,
   "AutoAlign": true,
   "Invert": false,
   "UseGlobalThreshold": true,
-  "BinaryThreshold": 84,
+  "BinaryThreshold": 96,
   "GreenOnly": true,
   "AlignmentPadding": 0,
   "Sharpness": 0.0,
@@ -122,6 +122,28 @@
         "|NS"
       ],
       "Threshold": 0.5
+    },
+    {
+      "Target": "AUTO",
+      "Patterns": [
+        "NOTO",
+        "OUTO"
+      ],
+      "Threshold": 0.999
+    },
+    {
+      "Target": "SLAVE",
+      "Patterns": [
+        "SLANE"
+      ],
+      "Threshold": 0.999
+    },
+    {
+      "Target": "CODE",
+      "Patterns": [
+        "C6DE"
+      ],
+      "Threshold": 0.999
     },
     {
       "Target": "CTRL",
