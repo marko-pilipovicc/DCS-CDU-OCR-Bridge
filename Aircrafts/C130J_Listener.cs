@@ -1,6 +1,7 @@
 using DCS_BIOS.EventArgs;
 using DCS.OCR.Library.Models;
 using NLog;
+using System.Diagnostics;
 using WwDevicesDotNet;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
@@ -46,6 +47,7 @@ internal class C130J_Listener : AircraftListener
 
     private void UpdateDisplay(OcrResult result)
     {
+        var sw = Stopwatch.StartNew();
         var output = GetCompositor(DEFAULT_PAGE);
         for (var i = 0; i < result.Lines.Length && i < 14; i++)
         {
@@ -76,6 +78,20 @@ internal class C130J_Listener : AircraftListener
                 if (isInverted) lineObj.InvertColors();
             }
         }
+
+        var compositingMs = sw.ElapsedMilliseconds;
+        sw.Restart();
+
+        if (this.mcdu != null)
+        {
+            this.mcdu.Screen.CopyFrom(pages[_currentPage]);
+            this.mcdu.RefreshDisplay();
+        }
+
+        var hardwareMs = sw.ElapsedMilliseconds;
+        var totalMs = result.TotalProcessingTimeMs + compositingMs + hardwareMs;
+        
+        Logger.Info($"[PERF] C-130J Flow: Total {totalMs}ms | Cap {result.CaptureTimeMs}ms | OCR {result.OcrTimeMs}ms | Corr {result.CorrectionTimeMs}ms | Stab {result.StabilityTimeMs}ms | Comp {compositingMs}ms | HW {hardwareMs}ms");
     }
 
     public override void DcsBiosDataReceived(object sender, DCSBIOSDataEventArgs e)

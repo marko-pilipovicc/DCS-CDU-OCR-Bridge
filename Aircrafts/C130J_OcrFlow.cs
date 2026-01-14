@@ -3,6 +3,7 @@ using DCS.OCR.Library.Services;
 using Newtonsoft.Json;
 using NLog;
 using OpenCvSharp;
+using System.Diagnostics;
 using System.IO;
 
 namespace WWCduDcsBiosBridge.Aircrafts;
@@ -16,11 +17,13 @@ internal class C130J_OcrFlow : IDisposable
     private readonly CustomOcrService _customOcrService;
     private readonly RapidOcrService _rapidOcrService;
     private readonly StabilityFilter _stabilityFilter;
+    private readonly DcsIndicationListener _indicationListener;
+    private readonly IndicationParser _indicationParser;
     
     private Profile? _currentProfile;
     private bool _isRunning;
-    private Task? _flowTask;
-    private CancellationTokenSource? _cts;
+    private string? _lastIndication;
+    private CancellationTokenSource? _refinementCts;
 
     public event EventHandler<OcrResult>? FrameProcessed;
 
@@ -30,7 +33,11 @@ internal class C130J_OcrFlow : IDisposable
         _rapidOcrService = new RapidOcrService();
         _customOcrService = new CustomOcrService();
         _correctionService = new CorrectionService();
-        _stabilityFilter = new StabilityFilter();
+        _stabilityFilter = new StabilityFilter(1); // Immediate update for triggered flow
+        _indicationListener = new DcsIndicationListener(4242);
+        _indicationParser = new IndicationParser();
+
+        _indicationListener.IndicationReceived += (msg) => ProcessIndication(msg);
 
         LoadProfileAndModels();
     }
@@ -76,67 +83,98 @@ internal class C130J_OcrFlow : IDisposable
         if (_isRunning) return;
 
         _isRunning = true;
-        _cts = new CancellationTokenSource();
-        _flowTask = Task.Run(() => FlowLoop(_cts.Token));
-        Logger.Info("C-130J OCR Flow started");
+        _indicationListener.Start();
+        Logger.Info("C-130J OCR Flow started (Triggered by Indications)");
     }
 
     public void Stop()
     {
         _isRunning = false;
-        _cts?.Cancel();
-        try
-        {
-            _flowTask?.Wait(1000);
-        }
-        catch
-        {
-            // Ignored
-        }
+        _indicationListener.Stop();
+        Logger.Info("C-130J OCR Flow stopped");
     }
 
-    private async Task FlowLoop(CancellationToken token)
+    private void ProcessIndication(string text)
     {
-        while (!token.IsCancellationRequested)
+        if (!_isRunning || _currentProfile == null || !_customOcrService.IsLoaded) return;
+
+        // Skip if indication is exactly the same as last time to reduce processing
+        if (text == _lastIndication) return;
+        _lastIndication = text;
+
+        // Cancel any pending refinement as we have a new fresh indication
+        _refinementCts?.Cancel();
+        _refinementCts = new CancellationTokenSource();
+
+        ExecuteOcr(text);
+
+        // Schedule a refinement OCR 150ms later to catch late DCS UI rendering
+        var token = _refinementCts.Token;
+        Task.Delay(150, token).ContinueWith(t =>
         {
-            if (_currentProfile == null || !_customOcrService.IsLoaded)
+            if (t.IsCompletedSuccessfully && !token.IsCancellationRequested)
             {
-                await Task.Delay(1000, token);
-                continue;
+                ExecuteOcr(text);
             }
+        }, token);
+    }
 
-            try
+    private void ExecuteOcr(string text)
+    {
+        if (!_isRunning || _currentProfile == null) return;
+
+        try
+        {
+            var swTotal = Stopwatch.StartNew();
+            var sw = Stopwatch.StartNew();
+
+            using var frame = _captureService.CaptureRegion(
+                _currentProfile.ViewportCrop.X,
+                _currentProfile.ViewportCrop.Y,
+                _currentProfile.ViewportCrop.W,
+                _currentProfile.ViewportCrop.H
+            );
+            var captureMs = sw.ElapsedMilliseconds;
+            sw.Restart();
+
+            if (frame != null && !frame.Empty())
             {
-                using var frame = _captureService.CaptureRegion(
-                    _currentProfile.ViewportCrop.X,
-                    _currentProfile.ViewportCrop.Y,
-                    _currentProfile.ViewportCrop.W,
-                    _currentProfile.ViewportCrop.H
-                );
+                var grid = _customOcrService.ProcessFrame(frame, _currentProfile, _rapidOcrService);
+                var ocrMs = sw.ElapsedMilliseconds;
+                sw.Restart();
 
-                if (frame != null && !frame.Empty())
-                {
-                    var grid = _customOcrService.ProcessFrame(frame, _currentProfile, _rapidOcrService);
-                    var corrected = _correctionService.Correct(grid, null, null, _currentProfile.ContextRules);
-                    var stable = _stabilityFilter.Filter(corrected);
+                // Use IndicationParser to get reference grid and DCS values for correction
+                var refGrid = _indicationParser.Parse(text, _currentProfile);
+                var dcsValues = _indicationParser.ExtractValues(text);
 
-                    FrameProcessed?.Invoke(this, stable);
-                }
+                var result = _correctionService.Correct(grid, refGrid, dcsValues, _currentProfile.ContextRules);
+                var correctionMs = sw.ElapsedMilliseconds;
+                sw.Restart();
+
+                var stable = _stabilityFilter.Filter(result);
+                var stabilityMs = sw.ElapsedMilliseconds;
+
+                stable.CaptureTimeMs = captureMs;
+                stable.OcrTimeMs = ocrMs;
+                stable.CorrectionTimeMs = correctionMs;
+                stable.StabilityTimeMs = stabilityMs;
+                stable.TotalProcessingTimeMs = swTotal.ElapsedMilliseconds;
+
+                FrameProcessed?.Invoke(this, stable);
             }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Error in C-130J OCR Flow Loop");
-            }
-
-            await Task.Delay(200, token); // ~5 FPS
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error in C-130J OCR Execution");
         }
     }
 
     public void Dispose()
     {
         Stop();
+        _indicationListener.Dispose();
         _customOcrService.Dispose();
         _rapidOcrService.Dispose();
-        _cts?.Dispose();
+        _refinementCts?.Dispose();
     }
 }

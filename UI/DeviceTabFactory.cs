@@ -44,6 +44,12 @@ public class DeviceTabFactory
         }
         else if (deviceInfo.Cdu != null)
         {
+            if (deviceInfo.DeviceId.DeviceType == DeviceType.Boeing777Pfp || 
+                deviceInfo.DeviceId.DeviceType == DeviceType.Boeing737NGPfp)
+            {
+                stackPanel.Children.Add(CreatePfpSection(deviceInfo));
+            }
+
             // TODO: Enable LED mapping UI when feature is ready
             //stackPanel.Children.Add(CreateLedCheckBoxes(deviceInfo.Cdu));
         }
@@ -52,6 +58,35 @@ public class DeviceTabFactory
         tabItem.Content = scrollViewer;
 
         return tabItem;
+    }
+
+    private static UIElement CreatePfpSection(DeviceInfo deviceInfo)
+    {
+        var pfpGroup = new GroupBox
+        {
+            Header = "PFP Options",
+            Padding = new Thickness(10),
+            Margin = new Thickness(0, 10, 0, 10)
+        };
+
+        var viewFontsButton = new Button
+        {
+            Content = "View Fonts",
+            Padding = new Thickness(10, 5, 10, 5),
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+
+        viewFontsButton.Click += (s, e) =>
+        {
+            var fontViewer = new FontViewerWindow(deviceInfo.Cdu)
+            {
+                Owner = Application.Current.MainWindow
+            };
+            fontViewer.ShowDialog();
+        };
+
+        pfpGroup.Content = viewFontsButton;
+        return pfpGroup;
     }
 
     private static UIElement CreateFcuTestSection(IFrontpanel frontpanel)

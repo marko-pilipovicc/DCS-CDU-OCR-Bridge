@@ -1,0 +1,45 @@
+﻿<Window x:Class="WWCduDcsBiosBridge.UI.FontViewerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Font Viewer" Height="600" Width="800"
+        WindowStartupLocation="CenterOwner"
+        Background="#F0F0F0">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Select Font:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <ComboBox x:Name="FontComboBox" Width="200" SelectionChanged="FontComboBox_SelectionChanged" DisplayMemberPath="Value"/>
+            
+            <TextBlock Text="Select Char:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+            <ComboBox x:Name="CharacterComboBox" Width="60" SelectionChanged="CharacterComboBox_SelectionChanged"/>
+
+            <TextBlock Text="Color:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+            <ComboBox x:Name="ColorComboBox" Width="100" SelectionChanged="ColorComboBox_SelectionChanged"/>
+
+            <Button x:Name="ShowOnHardwareButton" Content="Show on Device" Margin="10,0,0,0" Padding="10,2" Click="ShowOnHardwareButton_Click" IsEnabled="False"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Header="Large Glyph" Margin="0,0,5,0">
+                <Viewbox Stretch="Uniform">
+                    <Canvas x:Name="LargeGlyphCanvas" Background="Black" Width="50" Height="50"/>
+                </Viewbox>
+            </GroupBox>
+
+            <GroupBox Header="Small Glyph" Grid.Column="1" Margin="5,0,0,0">
+                <Viewbox Stretch="Uniform">
+                    <Canvas x:Name="SmallGlyphCanvas" Background="Black" Width="50" Height="50"/>
+                </Viewbox>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</Window>

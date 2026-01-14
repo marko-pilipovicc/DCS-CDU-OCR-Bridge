@@ -81,6 +81,12 @@ class FontEditor:
         tk.Button(tool_frame, text="Clear", command=self.clear_grid, width=8).pack(side=tk.LEFT, padx=2)
         tk.Button(tool_frame, text="Invert", command=self.invert_grid, width=8).pack(side=tk.LEFT, padx=2)
         
+        tk.Label(tool_frame, text=" Shift:").pack(side=tk.LEFT, padx=(10, 0))
+        tk.Button(tool_frame, text="↑", command=lambda: self.shift_grid(0, -1), width=3).pack(side=tk.LEFT, padx=1)
+        tk.Button(tool_frame, text="↓", command=lambda: self.shift_grid(0, 1), width=3).pack(side=tk.LEFT, padx=1)
+        tk.Button(tool_frame, text="←", command=lambda: self.shift_grid(-1, 0), width=3).pack(side=tk.LEFT, padx=1)
+        tk.Button(tool_frame, text="→", command=lambda: self.shift_grid(1, 0), width=3).pack(side=tk.LEFT, padx=1)
+        
         self.char_display_label = tk.Label(tool_frame, text="Editing: -", font=("Arial", 12, "bold"))
         self.char_display_label.pack(side=tk.LEFT, padx=20)
         
@@ -268,6 +274,53 @@ class FontEditor:
             
         glyph["BitArray"] = new_bit_array
         self.draw_grid()
+
+    def shift_grid(self, dx, dy):
+        if self.current_char_index < 0: return
+        glyph = self.font_data[self.current_glyph_type][self.current_char_index]
+        bit_array = glyph.get("BitArray", [])
+        
+        # Ensure bit_array is normalized to grid dimensions
+        while len(bit_array) < self.grid_height:
+            bit_array.append("." * self.grid_width)
+        
+        normalized_bit_array = []
+        for row in bit_array:
+            if len(row) < self.grid_width:
+                row = row.ljust(self.grid_width, ".")
+            normalized_bit_array.append(row[:self.grid_width])
+        
+        bit_array = normalized_bit_array
+
+        if dx != 0:
+            # Check for clipping
+            if dx > 0: # Shift right
+                if any(row[-1] == 'X' for row in bit_array):
+                    self.set_status("Cannot shift right: clipping detected")
+                    return
+                bit_array = ["." + row[:-1] for row in bit_array]
+            else: # Shift left
+                if any(row[0] == 'X' for row in bit_array):
+                    self.set_status("Cannot shift left: clipping detected")
+                    return
+                bit_array = [row[1:] + "." for row in bit_array]
+        
+        if dy != 0:
+            # Check for clipping
+            if dy > 0: # Shift down
+                if 'X' in bit_array[-1]:
+                    self.set_status("Cannot shift down: clipping detected")
+                    return
+                bit_array = ["." * self.grid_width] + bit_array[:-1]
+            else: # Shift up
+                if 'X' in bit_array[0]:
+                    self.set_status("Cannot shift up: clipping detected")
+                    return
+                bit_array = bit_array[1:] + ["." * self.grid_width]
+
+        glyph["BitArray"] = bit_array
+        self.draw_grid()
+        self.set_status(f"Shifted {' '.join([('Right' if dx>0 else 'Left') if dx!=0 else '', ('Down' if dy>0 else 'Up') if dy!=0 else ''])}")
 
     def save_file(self):
         if not self.font_data or not self.file_path:

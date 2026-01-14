@@ -100,7 +100,7 @@
   ],
   "DynamicRowYOffset": 10,
   "DynamicRowHeightMin": 28,
-  "DynamicRowHeightMax": 40,
+  "DynamicRowHeightMax": 60,
   "DynamicRowGap": 2,
   "UseDynamicRowSegmentation": true,
   "AutoAlign": true,
